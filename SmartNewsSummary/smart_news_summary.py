@@ -2,6 +2,35 @@ import os
 import json
 from gi.repository import GObject, Peas, PeasGtk, Liferea, Gtk
 
+
+def send_smart_quote(configuration,content,ordered_values):
+    
+    print(configuration)
+    for value in ordered_values:
+        print(value)
+    
+    print(content)
+
+
+
+def default_conf_json_file(nome_arquivo):
+    """Cria um arquivo JSON com as informações de configuração.
+    
+    Args:
+    nome_arquivo: Nome do arquivo JSON a ser criado.
+    """
+    
+    # Cria um dicionário com os dados do botão
+    dados_botao = {
+        "host": "localhost",
+        "port": "1234"
+    }
+
+    # Abre o arquivo no modo escrita e escreve os dados em formato JSON
+    with open(nome_arquivo, 'w') as arquivo:
+        json.dump(dados_botao, arquivo, indent=4)
+        
+
 def default_json_file(nome_arquivo):
     """Cria um arquivo JSON com as informações do botão.
     
@@ -27,6 +56,17 @@ class SmartNewsSummary(GObject.Object, Liferea.ShellActivatable):
     shell = GObject.property(type=Liferea.Shell)
 
     def do_activate(self):
+        # Pasta onde os arquivos JSON estão localizados
+        plugin_conf_rel_path="~/.config/liferea/plugins/smart_news_summary"
+        plugin_conf_path = os.path.expanduser(plugin_conf_rel_path)
+        conf_filepath = os.path.join(plugin_conf_path,"configuration.json");
+        if not os.path.exists(conf_filepath):
+            os.makedirs(plugin_conf_path,exist_ok=True);
+            default_conf_json_file(conf_filepath);
+        with open(conf_filepath, 'r') as f:
+            self.configuration = json.load(f)
+        
+    
         # Localizando o maintoolbar
         maintoolbar = self.shell.lookup("maintoolbar")
         
@@ -34,8 +74,6 @@ class SmartNewsSummary(GObject.Object, Liferea.ShellActivatable):
         # Model e treeview        
         normalviewitems = self.shell.lookup ("normalViewItems")
         self.treeview = normalviewitems.get_child().get_child()
-
-
 
         # Criando um novo botão na toolbar
         self.button = Gtk.ToolButton.new_from_stock(Gtk.STOCK_ADD)
@@ -52,7 +90,7 @@ class SmartNewsSummary(GObject.Object, Liferea.ShellActivatable):
         maintoolbar.remove(self.button)
 
     def on_button_clicked(self, widget):
-        plugin_rel_path="~/.config/liferea/plugins/smart_news_summary"
+        plugin_rel_path="~/.config/liferea/plugins/smart_news_summary/buttons"
         
         # Pasta onde os arquivos JSON estão localizados
         plugin_path = os.path.expanduser(plugin_rel_path)
@@ -97,8 +135,5 @@ class SmartNewsSummary(GObject.Object, Liferea.ShellActivatable):
             dado[ID]=Text;
         ordered_values = [dado[key] for key in sorted(dado.keys())]
         
-        for value in ordered_values:
-            print(value)
-        
-        print(content)
+        send_smart_quote(self.configuration,content,ordered_values);
 
