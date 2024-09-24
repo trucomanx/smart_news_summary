@@ -1,5 +1,5 @@
 # smart_news_summary
-smart_news_summary
+the smart_news_summary plugin
 
 
 # Intallation

@@ -48,7 +48,7 @@ def default_conf_json_file(nome_arquivo):
     # Cria um dicionário com os dados do botão
     dados_conf = {
         "host": "localhost",
-        "port": "1234",
+        "port": "11434",
         "model":"llama3.1:8b"
     }
 
