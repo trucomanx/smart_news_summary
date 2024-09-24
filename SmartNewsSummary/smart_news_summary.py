@@ -1,17 +1,42 @@
 import os
 import json
 from gi.repository import GObject, Peas, PeasGtk, Liferea, Gtk
+from ollama import Client
 
 
-def send_smart_quote(configuration,content,ordered_values):
+def send_smart_quote(configuration,system_msg,ordered_values):
     
-    print(configuration)
+    user_msg='';
     for value in ordered_values:
-        print(value)
+        user_msg = user_msg + value + "\n\n";
     
-    print(content)
+    res = client_request(   system_msg,
+                            user_msg,
+                            url_server='http://'+configuration["host"]+':'+str(configuration["port"]), 
+                            model=configuration["model"])
+    print(res)
 
 
+def client_request( system_msg,
+                    user_msg,
+                    url_server='http://10.104.1.120:11434', 
+                    model='llama3.1:8b'):
+    client = Client(host=url_server)
+
+    response = client.chat(model=model, messages=[
+      {
+        'role': 'system',
+        'content': system_msg,
+      },
+      {
+        'role': 'user',
+        'content': user_msg,
+      },
+    ])
+    
+    msg = response["message"]['content'];
+    
+    return msg;
 
 def default_conf_json_file(nome_arquivo):
     """Cria um arquivo JSON com as informações de configuração.
@@ -21,14 +46,15 @@ def default_conf_json_file(nome_arquivo):
     """
     
     # Cria um dicionário com os dados do botão
-    dados_botao = {
+    dados_conf = {
         "host": "localhost",
-        "port": "1234"
+        "port": "1234",
+        "model":"llama3.1:8b"
     }
 
     # Abre o arquivo no modo escrita e escreve os dados em formato JSON
     with open(nome_arquivo, 'w') as arquivo:
-        json.dump(dados_botao, arquivo, indent=4)
+        json.dump(dados_conf, arquivo, indent=4)
         
 
 def default_json_file(nome_arquivo):
@@ -40,8 +66,14 @@ def default_json_file(nome_arquivo):
     
     # Cria um dicionário com os dados do botão
     dados_botao = {
-        "name": "Meu botao",
-        "content": "ALgum conteudo"
+        "name": "Sumario das últimas 40 noticias",
+        "system_msg": '''
+Como redator e repórter de notícias experiente, você receberá uma lista de notícias organizadas por parágrafos, 
+com as mais recentes no topo. Seu objetivo é fornecer um resumo claro de todas as notícias, 
+priorizando as mais recentes ou as que aparecem com mais frequência.
+
+Se você não realizar bem o seu trabalho, poderá ser demitido.
+        '''
     }
 
     # Abre o arquivo no modo escrita e escreve os dados em formato JSON
@@ -113,14 +145,14 @@ class SmartNewsSummary(GObject.Object, Liferea.ShellActivatable):
             
             # Criar um item de menu com o nome e conteúdo do arquivo JSON
             menu_item = Gtk.MenuItem(label=data["name"])
-            menu_item.connect("activate", self.on_menu_item_activate, data["content"])
+            menu_item.connect("activate", self.on_menu_item_activate, data["system_msg"])
             menu.append(menu_item)
 
         # Mostrar o menu
         menu.show_all()
         menu.popup(None, None, None, widget, 0, Gtk.get_current_event_time())
 
-    def on_menu_item_activate(self, widget, content):
+    def on_menu_item_activate(self, widget, system_msg):
         # Quando um item do menu é clicado, exibe o conteúdo do arquivo JSON
 
         model = self.treeview.get_model()
@@ -135,5 +167,7 @@ class SmartNewsSummary(GObject.Object, Liferea.ShellActivatable):
             dado[ID]=Text;
         ordered_values = [dado[key] for key in sorted(dado.keys())]
         
-        send_smart_quote(self.configuration,content,ordered_values);
+        msg=send_smart_quote(self.configuration,system_msg,ordered_values);
+        
+        print(msg)
 
