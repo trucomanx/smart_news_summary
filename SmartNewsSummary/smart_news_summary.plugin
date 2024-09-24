@@ -1,0 +1,11 @@
+[Plugin]
+Module=smart_news_summary
+Loader=python3
+IAge=2
+Name=Smart News Summary
+Description=Adiciona um botão ao toolbar que gera um menu com base em arquivos JSON.
+Authors=Fernando <fernando@example.com>
+Copyright=Copyright © 2024 Fernando
+Website=https://example.com
+Help=https://example.com/help
+

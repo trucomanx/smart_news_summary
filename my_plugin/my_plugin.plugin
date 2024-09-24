@@ -1,0 +1,11 @@
+[Plugin]
+Module=my_plugin
+Loader=python3
+IAge=2
+Name=My Toolbar Plugin
+Description=Adds a button with a dropdown menu to the Liferea toolbar
+Authors=Fernando
+Copyright=Copyright © 2024 Fernando
+Website=https://example.com
+Help=https://example.com
+
