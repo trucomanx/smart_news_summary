@@ -1,6 +1,6 @@
 import os
 import json
-from gi.repository import GObject, Liferea, Gtk
+from gi.repository import GObject, Peas, PeasGtk, Liferea, Gtk
 
 def default_json_file(nome_arquivo):
     """Cria um arquivo JSON com as informações do botão.
@@ -29,6 +29,13 @@ class SmartNewsSummary(GObject.Object, Liferea.ShellActivatable):
     def do_activate(self):
         # Localizando o maintoolbar
         maintoolbar = self.shell.lookup("maintoolbar")
+        
+        
+        # Model e treeview        
+        normalviewitems = self.shell.lookup ("normalViewItems")
+        self.treeview = normalviewitems.get_child().get_child()
+
+
 
         # Criando um novo botão na toolbar
         self.button = Gtk.ToolButton.new_from_stock(Gtk.STOCK_ADD)
@@ -77,5 +84,21 @@ class SmartNewsSummary(GObject.Object, Liferea.ShellActivatable):
 
     def on_menu_item_activate(self, widget, content):
         # Quando um item do menu é clicado, exibe o conteúdo do arquivo JSON
+
+        model = self.treeview.get_model()
+        dado=dict()
+        for k in range(len(model)):
+            # Get path pointing to 6th row in list store
+            path = Gtk.TreePath(k)
+            treeiter = model.get_iter(path)
+            Text = model.get_value(treeiter, 2)
+            ID = model.get_value(treeiter, 4)
+            #print(ID,Text)
+            dado[ID]=Text;
+        ordered_values = [dado[key] for key in sorted(dado.keys())]
+        
+        for value in ordered_values:
+            print(value)
+        
         print(content)
 
