@@ -7,14 +7,22 @@ from ollama import Client
 def send_smart_quote(configuration,system_msg,ordered_values):
     
     user_msg='';
+    k=0;
     for value in ordered_values:
-        user_msg = user_msg + value + "\n\n";
+        user_msg = user_msg + '*\t' +value + "\n\n";
+        k=k+1;
+        if k>150:
+            break;
+    
+    url='http://'+configuration["host"]+':'+str(configuration["port"]);
+
     
     res = client_request(   system_msg,
                             user_msg,
-                            url_server='http://'+configuration["host"]+':'+str(configuration["port"]), 
-                            model=configuration["model"])
-    print(res)
+                            url_server=url, 
+                            model=configuration["model"])  
+    
+    return res;
 
 
 def client_request( system_msg,
@@ -24,13 +32,13 @@ def client_request( system_msg,
     client = Client(host=url_server)
 
     response = client.chat(model=model, messages=[
-      {
-        'role': 'system',
-        'content': system_msg,
-      },
+      #{
+      #  'role': 'system',
+      #  'content': system_msg,
+      #},
       {
         'role': 'user',
-        'content': user_msg,
+        'content': system_msg+"\n\n"+user_msg,
       },
     ])
     
@@ -53,8 +61,8 @@ def default_conf_json_file(nome_arquivo):
     }
 
     # Abre o arquivo no modo escrita e escreve os dados em formato JSON
-    with open(nome_arquivo, 'w') as arquivo:
-        json.dump(dados_conf, arquivo, indent=4)
+    with open(nome_arquivo, 'w', encoding='utf-8') as arquivo:
+        json.dump(dados_conf, arquivo, indent=4, ensure_ascii=False)
         
 
 def default_json_file(nome_arquivo):
@@ -67,18 +75,19 @@ def default_json_file(nome_arquivo):
     # Cria um dicionário com os dados do botão
     dados_botao = {
         "name": "Sumario das últimas 40 noticias",
-        "system_msg": '''
-Como redator e repórter de notícias experiente, você receberá uma lista de notícias organizadas por parágrafos, 
-com as mais recentes no topo. Seu objetivo é fornecer um resumo claro de todas as notícias, 
-priorizando as mais recentes ou as que aparecem com mais frequência.
+        "system_msg": ''' 
+Vou a enviarte um conjunto de titulares de notícias desconexas recopiladas de diferentes fontes, 
+ordenadas por data em parágrafos.
+As noticias mais recentes estao escritas primeiro e as ultimas no final. 
+Voce pode identificar cada titular novo pois inicia por "*".
 
-Se você não realizar bem o seu trabalho, poderá ser demitido.
+Lee todos esses titulares, mistura todas esas informações e num só paragrafo dime qual é o tema mais recorrente.
         '''
     }
 
     # Abre o arquivo no modo escrita e escreve os dados em formato JSON
-    with open(nome_arquivo, 'w') as arquivo:
-        json.dump(dados_botao, arquivo, indent=4)
+    with open(nome_arquivo, 'w', encoding='utf-8') as arquivo:
+        json.dump(dados_botao, arquivo, indent=4, ensure_ascii=False)
 
 
 class SmartNewsSummary(GObject.Object, Liferea.ShellActivatable):
